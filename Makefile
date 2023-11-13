@@ -1,25 +1,41 @@
-#########################################################
-#                  Minesweeper Makefile                 #
-#########################################################
+ #
+ # Project: Minesweper
+ # Name: Makefile
+ # Author: Tygan Chin
+ # Summary: 
+ #
 
-CXX      = clang++
-CXXFLAGS = -g3 -Wall -Wextra -Wpedantic -Wshadow
-LDFLAGS  = -g3 
+############## Variables ###############
 
-Minesweeper: 
-	${CXX} ${LDFLAGS} -o MetroSim main.o MetroSim.o PassengerQueue.o Passenger.o
+CXX = g++ # The compiler being used
 
-Minesweeper.o: minesweeper.cpp 
-	$(CXX) $(CXXFLAGS) -c minesweeper.cpp
+# Updating include path to use Comp 40 .h files and CII interfaces
+IFLAGS = -I/opt/homebrew/Cellar/sfml/2.6.1/include
 
-board.o: board.cpp board.h
-	$(CXX) $(CXXFLAGS) -c Passenger.cpp
+# Compile flags
+CXXFLAGS = -g3 -Wall -Wextra -Werror -Wfatal-errors -pedantic $(IFLAGS)
 
-MetroSim.o: PassengerQueue.o MetroSim.h MetroSim.cpp 
-	$(CXX) $(CXXFLAGS) -c MetroSim.cpp
+# Linking flags
+LDFLAGS = -L/opt/homebrew/Cellar/sfml/2.6.1/lib
 
-main.o:	minesweeper.o mainMine.cpp
-	$(CXX) $(CXXFLAGS) -c mainMine.cpp
-					
-clean: 
-	rm *.o *~ a.out
+# Libraries needed for linking
+LDLIBS = -g3 -lsfml-graphics -lsfml-window -lsfml-system
+
+# Collect all .h files in your directory.
+INCLUDES = $(shell echo *.h)
+
+############### Rules ###############
+
+## Compile step (.c files -> .o files)
+%.o: %.cpp $(INCLUDES)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+## Linking step (.o -> executable program)
+minesweeper: minesweeper.o board.o difficulty.o endingScreen.o
+	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)
+
+starting: testMain.o difficulty.o SFMLhelper.o
+	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)
+
+clean:
+	rm -f minesweeper *.o

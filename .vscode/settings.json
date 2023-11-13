@@ -1,0 +1,11 @@
+{
+        "files.associations": {
+            "string": "cpp",
+            "iostream": "cpp",
+            "iosfwd": "cpp",
+            "bitset": "cpp",
+            "system_error": "cpp",
+            "filesystem": "cpp",
+            "__locale": "cpp"
+        }
+}

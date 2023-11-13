@@ -1,10 +1,12 @@
-//
-// Tygan Chin
-// Purpose: 
-// 
-//
+/*
+ * Project: minesweeper
+ * Name: 
+ * Author: Tygan Chin
+ * Purpose: 
+ */
 
 #include "board.h"
+#include "SFMLhelper.h"
 #include <random>
 #include <set>
 #include <iostream>
@@ -12,143 +14,222 @@
 #include <algorithm>
 #include <random>
 
-using namespace std;
-using namespace sf;
+/* move outcomes */
+static const int NUMBERED_SPACE = 2;
+static const int OPEN_SPACE     = 1;
+static const int NO_SPACE       = 0;
+static const int MINE           = -1;
 
-// Board
-// arguments: Number of rows, columns, and bombs
-// purpose: Initialize a board of the given size
-// returns: n/a
-void Board::setBoard(int rowNum, int colNum, int numBombs)
+/* adjacent block iterators */
+static const int ADJACENT_BLOCKS = 8;
+static const int R[] = {-1, -1, -1, 0, 0, 1, 1, 1};
+static const int C[] = {-1, 0, 1, -1, 1, -1, 0, 1};
+
+/* invalid pair for when user has gotten all of the bombs from the bombLOc set */
+static const pair<int, int> OUT_OF_BOMBS = make_pair(-1, -1);
+
+/* 
+ * setBoard
+ * purpose: Initialize a board of the given size
+ * arguments: Number of rows, columns, and bombs
+ * returns: n/a
+ */
+void Board::setBoard(int colNum, int rowNum, int numBombs)
 {
-    //set memeber variables
-    numRows = rowNum, numCols = colNum, bombs = flags = numBombs;
+    /* set memeber variables */
+    numRows = rowNum;
+    numCols = colNum;
+    bombs = flags = numBombs;
     spacesLeft = (numCols * numRows) - numBombs;
     firstMove = true;
 
-    //initialize board
-    for (int i = 0; i < numRows; ++i)
-    {
+    /* initialize empty board */
+    for (int i = 0; i < numRows; ++i) {
         mineField.push_back(vector<Square>());
-        for (int j = 0; j < numCols; ++j)
-        {
-            Square newSquare;
-            newSquare.val = 0, newSquare.shown = false, newSquare.flag = false;
-            mineField[i].push_back(newSquare);
+        for (int j = 0; j < numCols; ++j) {
+            mineField[i].push_back((Square){0, false, false});
         }
     }
-
-    //set color array
-    colors[0] = Color::Blue;
-    colors[1] = Color::Green;
-    colors[2] = Color::Red;
-    colors[3] = Color::Magenta;
-    colors[4] = Color::Cyan;
-    colors[5] = Color::Yellow;
-    colors[6] = Color::Black;
-    colors[7] = Color::Black;
 }
 
-// move
-// arguments: Coordinates of user move 
-// purpose: Executes the users move
-// returns: False if a mine was hit, true otherwise
+/*
+ * move
+ * arguments: Coordinates of user move 
+ * purpose: Executes the users move
+ * returns: False if a mine was hit, true otherwise
+ */ 
 int Board::move(int row, int col)
 {
-    //set bombs and numbers if user first move
-    if (firstMove)
-    {
+    /* set bombs and numbers if user first move */
+    if (firstMove) {
         setBombs(row, col);    
         firstMove = false;
     }
 
-    //add flag back to total number if necessary
-    if (mineField[row][col].flag)
-        ++flags;
-
-    //respond to users move
-    if (mineField[row][col].shown)
-        return 0;
-    else if (mineField[row][col].val == 0)
-    {
-        openSpace(row, col); 
-        return 1;
-    } 
-    else if (mineField[row][col].val == -1)
-    {
-        mineHit = make_pair(row, col);
-        return -1;
+    /* add flag back to total number if necessary */
+    if (mineField[row][col].flag) {
+        ++flags;        
     }
-    else
-    {        
+
+    /* check if square is already revealed  */
+    if (mineField[row][col].shown) {
+        return NO_SPACE;        
+    }
+    
+    /* check if mine was hit */
+    if (mineField[row][col].val == -1) {
         mineField[row][col].shown = true;
-        --spacesLeft;
-        return 2;
-    }
-}
+        bombLocs.erase(make_pair(row, col));
+        return MINE;
+    } 
 
-// openSpace
-// arguments: Coordinates of move
-// purpose: Reveal the surrounding spaces of the chosen open space on the board
-// returns: n/a
-void Board::placeFlag(int row, int col)
-{
-    if (mineField[row][col].shown)
-        return;
-    else if (mineField[row][col].flag)
-    {
-        mineField[row][col].flag = false;
-        ++flags;
-    }
-    else if (flags > 0)
-    {
-        mineField[row][col].flag = true;
-        --flags;
-    }
-}
-
-// openSpace
-// arguments: Coordinates of move
-// purpose: Reveal the surrounding spaces of the chosen open space on the board
-// returns: n/a
-void Board::openSpace(int &row, int &col)
-{
-    //reveal space and decrement space count
+    /* reveal cell and decrement spaces left */
     mineField[row][col].shown = true;
     --spacesLeft;
 
-    //reveal the blocks in the direct vicinty of the open space
-    for (int i = row - 1; i <= row + 1; ++i)
-    {
-        if ((i < 0) or (i >= numRows))
-            continue;
+    /* reveal adjacent spaces if open space */
+    if (mineField[row][col].val == 0) {
+        openSpace(row, col);        
+        return OPEN_SPACE; 
+    }
 
-        for (int j = col - 1; j <= col + 1; ++j)
-        {
-            bool OutOfRange = (j < 0) || (j >= numCols);
-            bool CurrCell = (i == row) && (j == col);
-            bool AlreadyShown = mineField[i][j].shown;
+    return NUMBERED_SPACE;            
+}
 
-            if ((not OutOfRange) and (not CurrCell) and (not AlreadyShown)) 
-                move(i, j);                   
+/*
+ * openSpace
+ * arguments: Coordinates of move
+ * purpose: Reveal the surrounding spaces of the chosen open space on the board
+ * returns: n/a
+ */
+void Board::openSpace(int &row, int &col)
+{
+    /* reveal the blocks in the direct vicinty of the open space */
+    for (int i = 0; i < ADJACENT_BLOCKS; ++i) {
+
+        /* reveal space if in bounds */
+        bool rowInRange = ((row + R[i] >= 0) and (row + R[i] < numRows));
+        bool colInRange = ((col + C[i] >= 0) and (col + C[i] < numCols));
+        bool shown = mineField[row + R[i]][col + C[i]].shown;
+        if ((rowInRange) and (colInRange) and (not shown)) {
+            move(row + R[i], col + C[i]);
         }
-
     }
 }
 
-// won
-// arguments: n/a
-// purpose: Determines whether the user has revealed every non-mine square
-// returns: True if every square has been revealed, false otherwise.
+/*
+ * openSpace
+ * arguments: Coordinates of move
+ * purpose: Reveal the surrounding spaces of the chosen open space on the board
+ * returns: n/a
+ */
+bool Board::placeFlag(int row, int col)
+{
+    /* add or remove flag */
+    if (mineField[row][col].shown) {
+        return false;
+    } else if (mineField[row][col].flag) {
+        mineField[row][col].flag = false;
+        ++flags;
+    } else if (flags == 0) {
+        return false;
+    } else {
+        mineField[row][col].flag = true;
+        --flags;
+    }
+
+    /* flag was successfully placed */
+    return true;
+}
+
+/*
+ * isFlag
+ * purpose: Returns whether a flag is at the specified position on the board
+ * arguments: The row and col of the cell
+ * returns: True if a flag exists, false otherwise
+ */
+bool Board::isFlag(int row, int col)
+{
+    return mineField[row][col].flag;
+}
+
+/*
+ * isShown
+ * purpose: Returns whether the cell at the given position is shown
+ * arguments: The row and col of the cell
+ * returns: True if the flag is shown, false otherwise
+ */
+bool Board::isShown(int row, int col)
+{
+    return mineField[row][col].shown;
+}
+
+/*
+ * numFlags
+ * purpose: Returns number of flags available to be placed
+ * arguments: n/a
+ * returns: Num flags
+ */
+int Board::numFlags()
+{
+    return flags;
+}
+
+/*
+ * getNumRows
+ * purpose: Returns number of rows of the board
+ * arguments: n/a
+ * returns: The number of rows as an integer
+ */
+int Board::getNumRows()
+{
+    return numRows;
+}
+
+/*
+ * getNumCols
+ * purpose: Returns number of cols of the board
+ * arguments: n/a
+ * returns: The number of cols as an integer
+ */
+int Board::getNumCols()
+{
+    return numCols;
+}
+
+/*
+ * getNumber
+ * purpose: Returns the number of adjacent bombs to the given cell
+ * arguments: The row and col of the cell
+ * returns: The number of adjacent bombs
+ */
+int Board::getNumber(int row, int col) 
+{
+    /* return the value stored in the given cell if shown and not a bomb */
+    if (not mineField[row][col].shown) {
+        return 0;
+    } else {
+        return mineField[row][col].val;
+    }
+}
+
+/*
+ * won
+ * arguments: n/a
+ * purpose: Determines whether the user has revealed every non-mine square
+ * returns: True if every square has been revealed, false otherwise.
+ */
 bool Board::won()
 {
     return spacesLeft <= 0;
 }
 
-// setBombs
-// arguments: The coordinates of the first move
-// purpose: Set the bombs and the rest of the board based on users first move
-// returns: n/a
+/*
+ * setBombs
+ * arguments: The coordinates of the first move
+ * purpose: Set the bombs and the rest of the board based on users first move
+ * returns: n/a
+ */
 void Board::setBombs(int row, int col)
 {
     //intialize random number generator and its bounds
@@ -157,316 +238,78 @@ void Board::setBombs(int row, int col)
     int lowerRowBound = 0, upperRowBound = mineField.size() - 1;
     int lowerColBound = 0, upperColBound = mineField[0].size() - 1;
 
-    //generate random locations of bombs
-    while (bombLocs.size() < bombs)
-    {
+    /* generate random locations of bombs and add them to the bombLocs set */
+    while (bombLocs.size() < bombs) {
+
         //generate random row and col
         uniform_int_distribution<> dis1(lowerRowBound, upperRowBound);
         int ranRow = dis1(gen);
         uniform_int_distribution<> dis2(lowerColBound, upperColBound);
         int ranCol = dis2(gen);
 
-        //check to see if coordinates are at or surrounding the first move
-        bool isClose = ((abs(ranRow - row) <= 2) and (abs(ranCol - col) <= 2));
-        bool isDuplicate = (bombLocs.find(make_pair(ranRow, ranCol)) 
-                            != bombLocs.end());
+        /* check if random coordinates are  close to first move or duplicates */
+        bool close = (abs(ranRow - row) <= 2) and (abs(ranCol - col) <= 2);
+        bool dupe = bombLocs.find(make_pair(ranRow, ranCol)) != bombLocs.end();
 
-        if ((not isClose) and (not isDuplicate))
-        {
+        /* add bomb and set numbers if not close and not a duplicate */
+        if ((not close) and (not dupe)) {
             bombLocs.insert(make_pair(ranRow, ranCol));
-            mineField[ranRow][ranCol].val = -1;
+            mineField[ranRow][ranCol].val = MINE;
             setNumbers(ranRow, ranCol);            
         }
     }
 }
 
-// setNumbers
-// arguments: Coordinates of a single bomb
-// purpose: Increment the numbers in the surrounding blocks of the new bomb
-// returns: n/a
+/*
+ * setNumbers
+ * arguments: Coordinates of a single bomb
+ * purpose: Increment the numbers in the surrounding blocks of the new bomb
+ * returns: n/a
+ */
 void Board::setNumbers(int &row, int &col)
 {
-    //update the blocks that surround the mine
-    for (int i = row - 1; i <= row + 1; ++i)
-    {
-        if ((i < 0) or (i >= numRows))
-            continue;
+    /* add one to the adjacent blocks of the cell */
+    for (int i = 0; i < ADJACENT_BLOCKS; ++i) {
 
-        for (int j = col - 1; j <= col + 1; ++j)
-            if ((j >= 0) and (j < numCols) and (mineField[i][j].val != -1)) 
-                ++mineField[i][j].val;
+        /* reveal space if in bounds */
+        bool rowInRange = ((row + R[i] >= 0) and (row + R[i] < numRows));
+        bool colInRange = ((col + C[i] >= 0) and (col + C[i] < numCols));
+        if ((rowInRange) and (colInRange)) {
+            ++mineField[row + R[i]][col + C[i]].val;
+        }
     }
 }
 
-// drawBoard 
-// purpose: Draws the minesweeper board 
-void Board::drawBoard(RenderWindow &gameBoard, int &scaler, string t, int &diff, Color bombColor)
+/*
+ * getBombPos
+ * purpose: Returns the coordinates of a random bomb in the bomb set and then
+ *          removes it from the set .
+ * arguments: n/a
+ * returns: A pair containing the x and y coordinates of the bomb. If set is 
+ *          empty it returns a pair with the coordinates -1, -1.
+ */
+pair<int, int> Board::getBombPos()
 {
-    //set title scaler
-    float titleScale = 1.0;
-    if (diff == 3)
-        titleScale = 1.875;
-    
-    //draw the title
-    RectangleShape title(Vector2f(400 * titleScale, 100));
-    title.setPosition(200 * titleScale, 0);
-    setText(gameBoard, title, "MINESWEEPER", 7, 67);
-
-    //draw time
-    RectangleShape timer(Vector2f(150 * titleScale, 100));
-    timer.setPosition(0, 0);
-    setText(gameBoard, timer, t, 7, 38);
-
-    //draw number of flags
-    RectangleShape flagNum(Vector2f(150 * titleScale, 150 * titleScale));
-    flagNum.setPosition(650 * titleScale, 0);
-    Texture texture;
-    texture.loadFromFile("/Users/tyganchin/Downloads/MSredFlag.png");
-    Sprite flag;
-    flag.setTexture(texture);
-    flag.setPosition(flagNum.getPosition().x + 25, flagNum.getPosition().y + 15);
-    Vector2f newSize(85, 85);
-    flag.setScale(newSize.x / flag.getLocalBounds().width,
-                newSize.y / flag.getLocalBounds().height);
-    gameBoard.draw(flag);
-    
-    //create title
-    Font font;
-    font.loadFromFile(("/System/Library/Fonts/Supplemental/Copperplate.ttc"));
-    Text output(to_string(flags), font, 25);
-    output.setFillColor(Color::White);
-
-    //center title to middle of square
-    FloatRect bounds = output.getLocalBounds();
-    if ((diff == 1) or (diff == 2))
-    {
-        output.setOrigin(bounds.left + bounds.width / 2.0f, 
-                bounds.top + bounds.height / 2.0f);
-        output.setPosition(flagNum.getPosition().x + flagNum.getSize().x / 
-                2.15f, flagNum.getPosition().y + flagNum.getSize().y / 3.5f);
-    }
-    else
-    {
-        output.setOrigin(bounds.left + bounds.width / 2.0f, 
-                bounds.top + bounds.height / 2.0f);
-        output.setPosition(650 * titleScale + 65, 42);
-    }
-    gameBoard.draw(output);
-
-
-
-    //iterate through board drawing each square (pixel to coordinate convertion)
-    for (int i = 0; i < numRows; ++i)
-        for (int j = 0; j < numCols; ++j)
-            drawSquare(gameBoard, i, j, scaler, bombColor);             
-}
-
-// drawSquare
-// purpose: draws a square using the given inforamtion
-void Board::drawSquare(RenderWindow &gameBoard, int &i, int &j, int &scaler, Color bombColor)
-{
-    //create square
-    RectangleShape cell(Vector2f(scaler, scaler));
-    cell.setPosition(j * scaler, (i * scaler) + 100);
-    cell.setOutlineThickness(5.0f); // Border thickness
-    cell.setOutlineColor(Color::Black); // Border color
-
-    //set insides
-    int squareVal = mineField[i][j].val;
-    if (not mineField[i][j].shown)
-        cell.setFillColor(Color(211, 211, 211));
-    else if (squareVal == -1)
-    {
-        cell.setFillColor(bombColor);    
-        Texture texture;
-        if (bombColor == Color::Red) 
-            texture.loadFromFile("/Users/tyganchin/Downloads/MSbombimg.png");
-        else
-            texture.loadFromFile("/Users/tyganchin/Downloads/MSwinimage.png");
-
-        Sprite endPicture;
-        endPicture.setTexture(texture);
-        endPicture.setPosition(cell.getPosition().x + (scaler / 6) - 5, cell.getPosition().y + (scaler / 6) - 5);
-        Vector2f newSize(scaler * 0.75, scaler * 0.75);
-        endPicture.setScale(newSize.x / endPicture.getLocalBounds().width,
-                    newSize.y / endPicture.getLocalBounds().height);
-        gameBoard.draw(cell);
-        gameBoard.draw(endPicture);
-
-    }
-    else
-        cell.setFillColor(Color::White);
-
-    //draw end picutre if necessary
-    if ((squareVal != -1) or (not mineField[i][j].shown))
-        gameBoard.draw(cell);
-
-    //draw flag if necessary
-    if ((not mineField[i][j].shown) and (mineField[i][j].flag))
-    {
-        //load in texture
-        Texture texture;
-        texture.loadFromFile("/Users/tyganchin/Downloads/MSredFlag.png");
-
-        //create sprite
-        Sprite flag;
-        flag.setTexture(texture);
-        flag.setPosition(cell.getPosition().x + (scaler / 6) - 5, cell.getPosition().y + scaler / 6);
-
-        //scale sprite to fit in the cell
-        Vector2f newSize(scaler * 0.75, scaler * 0.75);
-        flag.setScale(newSize.x / flag.getLocalBounds().width,
-                    newSize.y / flag.getLocalBounds().height);
-
-        //draw
-        gameBoard.draw(flag);
+    /* check if bomb locations is empty */
+    if (bombLocs.size() == 0) {
+        return OUT_OF_BOMBS;
     }
 
-    //number if cell is close to mine
-    if ((squareVal > 0) and (mineField[i][j].shown))
-        setText(gameBoard, cell, to_string(squareVal), squareVal - 1, 50);
-
-}
-
-// setText
-// sets the text inside a block
-void Board::setText(RenderWindow &gameBoard, RectangleShape cell, string text, int color, int fontSize)
-{
-    //create title
-    Font font;
-    font.loadFromFile(("/System/Library/Fonts/Supplemental/Copperplate.ttc"));
-    Text output(text, font, fontSize);
-    output.setFillColor(colors[color]);
-    output.setOutlineThickness(0.15);
-    output.setOutlineColor(Color::Black);
-
-    //center title to middle of square
-    FloatRect bounds = output.getLocalBounds();
-    output.setOrigin(bounds.left + bounds.width / 2.0f, 
-            bounds.top + bounds.height / 2.0f);
-    output.setPosition(cell.getPosition().x + cell.getSize().x / 
-            2.0f, cell.getPosition().y + cell.getSize().y / 2.0f);
-
-    //return text
-    gameBoard.draw(output);
-}    
-
-// drawFlag
-void Board::drawFlag(RectangleShape &cell)
-{
-    //load in texture
-    Texture texture;
-    texture.loadFromFile("/Users/tyganchin/Downloads/MSredFlag.png");
-
-    //create sprite
-    Sprite flag;
-    flag.setTexture(texture);
-    flag.setPosition(cell.getPosition());
-
-    //draw image into the cell
-    cell.setTexture(&texture);
-    cell.setTextureRect(IntRect(0, 0, cell.getSize().x, cell.getSize().y));
-}
-
-// endAnimation
-// purpose: executes an ending animation for the game
-void Board::endAnimation(RenderWindow &screen, bool won, int scaler, string time, int diff)
-{
-    //intialize delay
-    Clock clock;
-    int delayMS = 500;
-
-    //shuffle set and put in a vector
-    vector<pair<int, int> > bombLocations(bombLocs.begin(), bombLocs.end());
+    /* generate a random bomb index */
     random_device rd;
-    mt19937 generator(rd());
-    shuffle(bombLocations.begin(), bombLocations.end(), generator);
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis1(0, bombLocs.size() - 1);
 
-    //set animation to either winning or losing
-    Color color = Color::Green;
-    SoundBuffer soundBuffer;
-    vector<pair<int, int> >::iterator it = bombLocations.begin();
-    if (won)
-    {
-        soundBuffer.loadFromFile("/Users/tyganchin/Downloads/MSbombwon.mp3");
-        color = Color::Green;
-    }
-    else
-    {
-        soundBuffer.loadFromFile("/Users/tyganchin/Downloads/MSbomblost.mp3");
-        color = Color::Red;
-        while ((it->first != mineHit.first) or (it->second != mineHit.second))
-            ++it;   
-    }
-
-    //set sound
-    Sound sound;
-    sound.setBuffer(soundBuffer);
-    sound.setVolume(50);
+    /* go to the index and get a copy of the pair */
+    int randomIndex = dis1(gen);
+    pair<int, int> bombPos = *next(bombLocs.begin(), randomIndex);
     
-    int count = 0;
-    bool first = true;
-    vector<pair<int, int> > printLocations;
-    while (screen.isOpen())
-    {
-        Time delay = milliseconds(delayMS);
-        Event event;
-        while (screen.pollEvent(event))
-        {
-            //close screen if user closes the window
-            if (event.type == sf::Event::Closed)
-                screen.close();
-
-            //exit if user clicks
-            if (event.type == Event::MouseButtonPressed)
-            {
-                if (event.mouseButton.button == Mouse::Left)
-                    return;     
-                else 
-                    cout << "right" << endl;           
-            }
-
-        }
-
-        // Check if the desired delay has passed
-        if ((clock.getElapsedTime() >= delay) or (first))
-        {
-            first = false;
-
-            // Reset the clock for the next delay
-            clock.restart();
-
-            //quit if every bomb has been revealed
-            if (count == bombLocs.size())
-                return;
-
-            //play sound
-            sound.play();
-
-            //reveal mine
-            mineField[it->first][it->second].shown = true;
-            ++count;
-
-            //add location to print out list
-            printLocations.push_back(make_pair(it->first, it->second));
-
-            //iterate to next bomb
-            ++it;
-            if (it == bombLocations.end())
-                it = bombLocations.begin();            
-            
-            delayMS = max(100, delayMS - 25);
-        }
-
-        //draw screen;
-        screen.clear(Color::White);
-        drawBoard(screen, scaler, time, diff, color);
-        screen.display();
-    }
+    /* return the location */
+    return bombPos;
 }
 
 
-//test func
+//test fun
 void Board::testprint()
 {
     for (size_t i = 0; i < mineField.size(); ++i)

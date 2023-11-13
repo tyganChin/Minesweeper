@@ -1,8 +1,12 @@
-//
-// Tygan Chin
-// Purpose: 
-// 
-//
+/*
+ * Project: minesweeper
+ * Name: board.h
+ * Author: Tygan Chin
+ * Purpose: Interface for the minesweeper board class. Creates a Board object of the given rows and cols for the minesweeper game.
+ */
+
+#ifndef BOARD_H
+#define BOARD_H
 
 #include <vector>
 #include <set>
@@ -17,15 +21,20 @@ public:
 
     void setBoard(int numRows, int numCols, int numBombs);
     int move(int row, int col);
-    void placeFlag(int row, int col);
+    bool placeFlag(int row, int col);
+    bool isFlag(int row, int col);
+    bool isShown(int row, int col);
+    int numFlags();
+    int getNumRows();
+    int getNumCols();
+    int getNumber(int row, int col);
     bool won();
-    void drawBoard(RenderWindow &gameBoard, int &scaler, string t, int &diff, Color bombColor);
-    void endAnimation(RenderWindow &screen, bool won, int scaler, string time, int diff);
+    pair<int, int> getBombPos();
 
-// private:
+private:
 
-    struct Square
-    {
+    /* represents a single space on the board */
+    struct Square {
         int val;
         bool shown;
         bool flag;
@@ -37,20 +46,20 @@ public:
     int spacesLeft;
     int numRows;
     int numCols;
+    float titleScale;
     size_t bombs;
     int flags;
-    Color colors[8];
     bool firstMove;
-    pair<int, int> mineHit;
 
+    /* helper functions */
     void openSpace(int &row, int &col);
     void setBombs(int row, int col);
     void setNumbers(int &row, int &col);
-    void drawSquare(RenderWindow &gameBoard, int &i, int &j, int &scaler, Color bombColor);
-    void setText(RenderWindow &gameBoard, RectangleShape cell, string text, int color, int fontSize);
-    void drawFlag(RectangleShape &cell);
+
 
     //test funcs
     void testprint();
 
 };
+
+#endif
