@@ -1,41 +1,54 @@
  #
- # Project: Minesweper
+ # Project: minesweper
  # Name: Makefile
  # Author: Tygan Chin
- # Summary: 
- #
+ # Purpose: Builds the minesweeper game using the necessary files and paths. 
+ # 		    Type "make" to build the program executable 
+ # Note: The include and linking paths must be updated to point to the SFML
+ #  	 library on local computer.
 
 ############## Variables ###############
 
-CXX = g++ # The compiler being used
+# The compiler being used
+CXX = clang++
 
-# Updating include path to use Comp 40 .h files and CII interfaces
-IFLAGS = -I/opt/homebrew/Cellar/sfml/2.6.1/include
+# Include flags
+IFLAGS = -I/PATH_T0_SFML/inlclude
 
 # Compile flags
 CXXFLAGS = -g3 -Wall -Wextra -Werror -Wfatal-errors -pedantic $(IFLAGS)
 
 # Linking flags
-LDFLAGS = -L/opt/homebrew/Cellar/sfml/2.6.1/lib
+LDFLAGS = -L/PATH_TO_SFML/lib
 
 # Libraries needed for linking
-LDLIBS = -g3 -lsfml-graphics -lsfml-window -lsfml-system
+LDLIBS = -g3 -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 
-# Collect all .h files in your directory.
-INCLUDES = $(shell echo *.h)
+# Define directory for .o, .cpp, and .h files
+OBJ_DIR = Files_o
+SRC_DIR = Files_cpp
+HD_DIR  = Files_h
+
+# Collect all of the .cpp files in cpp directory
+SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+
+# Collect all .h files in the header directory.
+INCLUDES = $(wildcard $(HD_DIR)/*.h)
+
+# Object files derived from source files
+OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
+
 
 ############### Rules ###############
 
-## Compile step (.c files -> .o files)
-%.o: %.cpp $(INCLUDES)
+# Compile the .cpp files to .o
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(INCLUDES) | $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-## Linking step (.o -> executable program)
-minesweeper: minesweeper.o board.o difficulty.o endingScreen.o
-	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)
-
-starting: testMain.o difficulty.o SFMLhelper.o
+# Linking step (.o -> executable program)
+minesweeper: $(OBJS)
 	$(CXX) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
 clean:
-	rm -f minesweeper *.o
+	rm -f minesweeper $(OBJS)
+	

@@ -2,7 +2,11 @@
  * Project: minesweeper
  * Name: EndingMenu.h
  * Author: Tygan Chin
- * Purpose: 
+ * Purpose: Interface for the EndingMenu class. Declares the functions that
+ *          display the ending menu for the user which includes a win/loss
+ *          message, the difficulty of the game, the number of wins on the
+ *          difficulty, the time elasped, the best time recorded, and quit
+ *          and continue buttons.
  */
 
 #ifndef ENDINGMENU_H
@@ -29,6 +33,7 @@ private:
 
     /* member variables */
     bool again;
+    SFMLhelper SFML;
     Sound music, soundEffect, button;
     Sprite backgroundImage;
     textBox winNumber, difficultyInitial, winLoss, bestTime, time, quit, cont;
@@ -37,8 +42,6 @@ private:
     bool decision(RenderWindow &window);
     void draw(RenderWindow &window);
     void playSound();
-    string getBestTime(string filename);
-    void updateBest(bool &gameWon, Time &gameTime, int &difficulty, int oldTime);
 
     /* image functions */
     void setSounds(bool &gameWon);
@@ -47,10 +50,9 @@ private:
     void setDifficulty(int &difficulty);
     void setWinLoss(bool &gameWon);
     void setTimes(bool &gameWon, Time &gameTime, int &difficulty);
-    void setQuitContinue();
+    bool setBestTime(bool &gameWon, Time &gameTime, string file);
 
     /* image helper funcs */
-    bool setBestTime(bool &gameWon, Time &gameTime, string file);
     string getWins(bool &gameWon, string filename);
 };
 

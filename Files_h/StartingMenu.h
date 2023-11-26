@@ -1,8 +1,10 @@
 /*
  * Project: minesweeper
- * Name: staringMenu.h
+ * Name: StartingMenu.h
  * Author: Tygan Chin
- * Purpose: Interface for the Starting menu for the minesweeper game.
+ * Purpose: Interface for the Starting menu for the minesweeper game. Defines 
+ *          the functions that display the game menu for the minesweeper game 
+ *          and gets the desired difficulty of the user.
  */
 
 #ifndef STARTINGMENU_H
@@ -29,6 +31,7 @@ private:
 
     /* member variables */
     int difficulty;
+    SFMLhelper SFML;
     Sound music, button;
     textBox menuTitle;
     vector<textBox> diffButtons;

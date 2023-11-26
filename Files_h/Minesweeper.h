@@ -1,14 +1,15 @@
 /*
  * Project: minesweeper
- * Name: 
+ * Name: Minesweeper.h
  * Author: Tygan Chin
- * Purpose: 
+ * Purpose: Interface for the Minesweeper class. Creates and runs the full
+ *          Minesweeper game.
  */
 
 #include "SFML/Graphics.hpp"
 #include "SFML/Audio.hpp"
 #include "SFMLhelper.h"
-#include "board.h"
+#include "Board.h"
 
 using namespace std;
 using namespace sf;
@@ -25,23 +26,34 @@ public:
     
 private:
 
-    /* member variables */
+    /* game board */
     Board gameBoard;
-    int windowWidth;
-    int windowScaler;
-    int cellScaler;
     int difficulty;
-    Sound click_sound, openSpace_sound, flag_sound, mineHit_sound;
+
+    /* window */
+    SFMLhelper SFML;
+    int windowWidth;
+    
+    /* scalers */
+    float windowScaler;
+    float cellScaler;
+
+    /* sounds */
+    Sound click_sound;
+    Sound openSpace_sound;
+    Sound flag_sound;
     Sound cellReveal;
 
-    /* images */
+    /* text and rectangles */
     textBox title;
     textBox time;
+    textBox flag_amount;
     RectangleShape shown_cell_box;
     RectangleShape not_shown_cell_box;
     RectangleShape end_animation_cell;
-    Text flag_amount;
     Text cellNums[8];
+
+    /* images */
     Sprite flag_in_title;
     Sprite cell_flag;
     Sprite end_animation_image;
@@ -50,12 +62,16 @@ private:
     Time runGame(RenderWindow &window);
     bool gameMove(RenderWindow &window);
     void placeFlag(RenderWindow &window);
-    void endAnimation(RenderWindow &window, Time time);
-    bool windowExit(RenderWindow &window, Event event);
+    bool invalidCell(Vector2i &mousePos);
     void drawGame(RenderWindow &window, Time currTime);
 
+    /* end animation funcs */
+    void endAnimation(RenderWindow &window, Time time);
+    bool windowExit(RenderWindow &window, Event event);
+    bool reveal(RenderWindow &window, Time time);
+
     /* set image functions */
-    void setImages();
+    void setImagesAndAudio();
     void setWindowDimensions();
     void setFlags();
     void setCellBox();

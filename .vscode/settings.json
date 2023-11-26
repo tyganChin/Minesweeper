@@ -6,6 +6,7 @@
             "bitset": "cpp",
             "system_error": "cpp",
             "filesystem": "cpp",
-            "__locale": "cpp"
+            "__locale": "cpp",
+            "vector": "cpp"
         }
 }

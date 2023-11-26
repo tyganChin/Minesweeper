@@ -2,87 +2,24 @@
  * Project: minesweeper
  * Name: EndingMenu.cpp
  * Author: Tygan Chin
- * Purpose: Display game info to user and get whether they want to play again
- *          EndingMenu.cpp
+ * Purpose: Implementation for the EndingMenu class. Declares the functions 
+ *          that display the ending menu for the user which includes a win/loss
+ *          message, the difficulty of the game, the number of wins on the
+ *          difficulty, the time elasped, the best time recorded, and quit
+ *          and continue buttons.
  */
 
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "EndingMenu.h"
-#include "SFMLhelper.h"
+#include <cassert>
+#include "../Files_h/EndingMenu.h"
+#include "../Files_h/SFMLhelper.h"
+#include "../Files_h/EM_Constants.h"
+#include "../Files_h/Game_Constants.h"
 #include "SFML/Graphics.hpp"
 #include "SFML/Audio.hpp"
 
-
-/******************************************************\
- *                     CONSTANTS                       *
-\******************************************************/
-
-/* window constants */
-static const int W_WIDTH            = 900;
-static const int W_HEIGHT           = 600;
-static const float AREA             = W_WIDTH * W_HEIGHT;
-static const string WINDOW_NAME     = "Ending Screen";
-static const Color BACKGROUND_COLOR = WHITE;
-
-/* font */
-static const string FONT = "Copperplate.ttc";
-static const float TEXT_THICKNESS = AREA / 1080000;
-static const float DELAY = 0.25;
-
-/* sound constants */
-static const int SOUND_EFFECT_DELAY = 3000;
-static const soundInfo MUSIC_WIN    = {"MSwin.mp3",    75,  1.0,  true};
-static const soundInfo MUSIC_LOSS   = {"MSloss.mp3",   75,  1.0,  true};
-static const soundInfo EFFECT_WIN   = {"MSwinSE.wav",  100, 1.25, false};
-static const soundInfo EFFECT_LOSS  = {"MSlossSE.mp3", 100, 1.25, false};
-static const soundInfo BUTTON       = {"MSbutton.mp3", 100, 1.00, false};
-
-/* background image */
-static const string WIN_BACKGROUND_IMAGE  = "MSwinimage.png";
-static const string LOSS_BACKGROUND_IMAGE = "MSbombimg.png";
-static const float IMAGE_WIDTH = W_WIDTH / 1.8;
-static const spriteInfo BACKGROUND_IMAGE = {"FILE", IMAGE_WIDTH, IMAGE_WIDTH, (W_WIDTH - IMAGE_WIDTH) / 2.0f, (W_HEIGHT - IMAGE_WIDTH) / 2.0f};
-
-/* win total  */
-static const string WIN_FILES[] = {"winsEasy.txt", "winsMed.txt", "winsHard.txt"};
-static const Color WIN_TEXT_FILL = GREEN, LOSS_TEXT_FILL = BLACK;
-static const rectangleInfo WIN_NUM_BOX = {W_WIDTH / 12, W_WIDTH / 12, W_WIDTH / 18, W_HEIGHT / 60, TRANSPARENT, 0, BLACK};
-static const textInfo WIN_NUM_TEXT = {"W# ", FONT, AREA / 13500, TRANSPARENT, AREA / 1080000, BLACK};
-
-/* difficulty */
-static const string DIFF_TXT[] = {"E", "M", "H"};
-static const Color DIFF_FILL[] = {GREEN, YELLOW, RED};
-static const rectangleInfo DIFF_BOX = {W_WIDTH / 9, W_HEIGHT / 6, W_HEIGHT / (8.0 / 9.0), 0, TRANSPARENT};
-static const textInfo DIFF_TEXT = {"INITIAL", FONT, AREA / 6750, TRANSPARENT, TEXT_THICKNESS, BLACK};
-
-/* Win/Loss */
-static const string WIN_MESSAGE_TEXT = "YOU WON", LOSS_MESSAGE_TEXT = "YOU LOST";
-static const Color WIN_MESSAGE_COLOR = GREEN,     LOSS_MESSAGE_COLOR = RED;
-static const rectangleInfo WIN_LOSS_BOX = {W_WIDTH, W_HEIGHT / 1.8, 0, 0, TRANSPARENT, 0, BLACK};
-static const textInfo WL_TEXT  = {"MESSAGE",  FONT, AREA / 3272.7, GREEN, TEXT_THICKNESS, BLACK};
-
-/* best time */
-static const string TIMES[] = {"bestEasy.txt", "bestMedium.txt", "bestHard.txt"};
-static const string TIME_BEST = "BEST: ";
-static const rectangleInfo BEST_TIME_BOX = {W_WIDTH / 3.6, W_HEIGHT / 2.4, W_WIDTH / 1.8, W_HEIGHT / 1.935, TRANSPARENT, 0, BLACK};
-static const textInfo BEST_TIME_TEXT = {"TEXT", FONT, AREA / 10800, BLACK, TEXT_THICKNESS, BLACK};
-
-/* curr time */
-static const string TIME_LOSS = "...N/A...";
-static const rectangleInfo TIME_BOX = {W_WIDTH / 3.6, W_HEIGHT / 2.4, W_WIDTH / 6, W_HEIGHT / 1.935, TRANSPARENT, 0, BLACK};
-static const textInfo TIME_TEXT = {"TIME: ", FONT, AREA / 10800, BLACK, TEXT_THICKNESS, BLACK};
-
-/* Quit box */
-static const rectangleInfo QUIT_BOX = {W_WIDTH / 4.5, W_HEIGHT / 7.5, 0, W_HEIGHT / 1.154, RED, 0, BLACK};
-static const textInfo QUIT_TEXT = {"QUIT", FONT, AREA / 18000, WHITE, TEXT_THICKNESS, BLACK};
-static const textBoxInfo QUIT_TEXTBOX = {QUIT_BOX, QUIT_TEXT};
-
-/* Continue box */
-static const rectangleInfo CONTINUE_BOX = {W_WIDTH / 4.5, W_HEIGHT / 7.5, W_WIDTH / 1.154, W_HEIGHT / 1.154, GREEN, 0, BLACK};
-static const textInfo CONTINUE_TEXT = {"PLAY AGAIN", FONT, AREA / 18000, WHITE, TEXT_THICKNESS, BLACK};
-static const textBoxInfo CONT_TEXTBOX = {CONTINUE_BOX, CONTINUE_TEXT};
 
 /******************************************************\
  *                    Constructor                      *
@@ -91,12 +28,19 @@ static const textBoxInfo CONT_TEXTBOX = {CONTINUE_BOX, CONTINUE_TEXT};
 /* 
  * EndingMenu
  * purpose: Initialize the ending screen window and images
- * arguments: The outcome of the minesweeper game (win or loss), the length of
- *            the game and the diffiuclty it was played on.
+ * parameters:
+ *         bool gameWon : Whether or not the game was won
+ *            Time time : The time elasped during the game   
+ *      int &difficulty : The difficulty the game was played on
  * returns: n/a
+ * expectations: The difficulty is between 0 and the total number of 
+ *               difficulties
  */
 EndingMenu::EndingMenu(bool gameWon, Time time, int &difficulty)
 {
+    /* check if difficulty is valid */
+    assert(difficulty >= 0 and difficulty < NUM_DIFFS);
+
     /* set window images and sounds */
     setSounds(gameWon);
     setBackgroundImage(gameWon);
@@ -104,8 +48,8 @@ EndingMenu::EndingMenu(bool gameWon, Time time, int &difficulty)
     setDifficulty(difficulty);
     setWinLoss(gameWon);
     setTimes(gameWon, time, difficulty);
-    quit = makeTextBox(QUIT_TEXTBOX);
-    cont = makeTextBox(CONT_TEXTBOX);
+    quit = SFML.makeTextBox(QUIT_TEXTBOX.rectangleData, QUIT_TEXTBOX.textData);
+    cont = SFML.makeTextBox(CONT_TEXTBOX.rectangleData, CONT_TEXTBOX.textData);
 }
 
 
@@ -115,16 +59,15 @@ EndingMenu::EndingMenu(bool gameWon, Time time, int &difficulty)
 
 /* 
  * playAgain
- * purpose: Initialize the member variables of the starting menu which includes 
-           the render window, audio, and drawings
- * arguments: n/a
+ * purpose: Display the ending menu to user and get user's decision to play
+ *          game again or not.
+ * parameters: n/a
  * returns: n/a
  */
 bool EndingMenu::playAgain()
 {
     /* initialize and center window */
-    RenderWindow window(VideoMode(W_WIDTH, W_HEIGHT), WINDOW_NAME);
-    centerWindow(window, W_WIDTH, W_HEIGHT);
+    RW window(VideoMode(WIDTH, HEIGHT), WINDOW_NAME);
 
     /* delay for sound effect */
     Clock clock;
@@ -147,14 +90,14 @@ bool EndingMenu::playAgain()
                 return false;            
             }
 
-            if ((leftClick(event)) and (decision(window))) {
+            if ((SFML.leftClick(event)) and (decision(window))) {
                 playSound();
                 return again;                 
             }
         }
 
         /* play music if sound effect finishes */
-        if ((soundEffectDone) and (clock.getElapsedTime() >= delay)) {
+        if ((not soundEffectDone) and (clock.getElapsedTime() >= delay)) {
             soundEffect.stop();
             soundEffectDone = true;
             music.play();
@@ -172,10 +115,13 @@ bool EndingMenu::playAgain()
  * decision
  * purpose: Determine whether quit/continue button was pressed and save result 
  *          if so.
- * arguments: The RenderWindow object
+ * parameters: 
+ *      RW &window : The render window
  * returns: True if quit/continue button was pressed, false otherwise
+ * effects: The again bool member variable is updated if quit/continue is
+ *          pressed.
  */
-bool EndingMenu::decision(RenderWindow &window)
+bool EndingMenu::decision(RW &window)
 {
     /* calculate position of mouse */
     Vector2i mousePos = Mouse::getPosition(window);
@@ -201,23 +147,25 @@ bool EndingMenu::decision(RenderWindow &window)
 /* 
  * draw
  * purpose: Draw the ending screen images to the render window
- * arguments: A renderwindow object
+ * parameters:
+ *      RW &window : The render window
  * returns: n/a
  * effects: The ending screen is displayed to user
  */
-void EndingMenu::draw(RenderWindow &window)
+void EndingMenu::draw(RW &window)
 {
     /* clear the window */
     window.clear(BACKGROUND_COLOR);
 
     /* draw the images on the window */
     window.draw(backgroundImage);
-    drawTextBox(window, difficultyInitial);
-    drawTextBox(window, winLoss);
-    drawTextBox(window, bestTime);
-    drawTextBox(window, time);
-    drawTextBox(window, quit);
-    drawTextBox(window, cont);
+    SFML.drawTextBox(window, winNumber);
+    SFML.drawTextBox(window, difficultyInitial);
+    SFML.drawTextBox(window, winLoss);
+    SFML.drawTextBox(window, bestTime);
+    SFML.drawTextBox(window, time);
+    SFML.drawTextBox(window, quit);
+    SFML.drawTextBox(window, cont);
 
     /* display image */
     window.display();
@@ -226,7 +174,7 @@ void EndingMenu::draw(RenderWindow &window)
 /* 
  * playSound
  * purpose: Play the button sound when quit or continue is pressed
- * arguments: n/a
+ * parameters: n/a
  * returns: n/a
  */
 void EndingMenu::playSound()
@@ -248,28 +196,30 @@ void EndingMenu::playSound()
 /* 
  * setSounds
  * purpose: Set the music, button sound and sound effect for the menu.
- * arguments: The game outcome
+ * parameters:
+ *      bool &gameWon : The outcome of the game
  * returns: n/a
  */
 void EndingMenu::setSounds(bool &gameWon)
 {
     /* set button sound */
-    button = setSound(BUTTON);
+    button = SFML.setSound(BUTTON);
 
     /* set the music and sound effects based on outcome of the game */
     if (gameWon) {
-        music = setSound(MUSIC_WIN);
-        soundEffect = setSound(EFFECT_WIN);
+        music = SFML.setSound(MUSIC_WIN);
+        soundEffect = SFML.setSound(EFFECT_WIN);
     } else {
-        music = setSound(MUSIC_LOSS);
-        soundEffect = setSound(EFFECT_LOSS);
+        music = SFML.setSound(MUSIC_LOSS);
+        soundEffect = SFML.setSound(EFFECT_LOSS);
     }
 }
 
 /* 
  * setBackgroundImage
  * purpose: Sets the background image of the ending menu.
- * arguments: The game outcome
+ * parameters:
+ *      bool &gameWon : The outcome of the game
  * returns: n/a
  */
 void EndingMenu::setBackgroundImage(bool &gameWon)
@@ -280,24 +230,26 @@ void EndingMenu::setBackgroundImage(bool &gameWon)
     /* set background image corresponding to win/loss */
     if (gameWon) {
         imageInfo.file = WIN_BACKGROUND_IMAGE;
-        backgroundImage = setSprite(imageInfo);
+        backgroundImage = SFML.setSprite(imageInfo);
     } else {
         imageInfo.file = LOSS_BACKGROUND_IMAGE;
-        backgroundImage = setSprite(imageInfo);
+        backgroundImage = SFML.setSprite(imageInfo);
     }
 }
 
 /* 
  * setWinNumber
  * purpose: Initializes the number of all time wins of the game
- * arguments: The game outcome and the difficulty 
+ * parameters:
+ *        bool &gameWon : The outcome of the game
+ *      int &difficulty : The difficulty of the game played
  * returns: n/a
  */
 void EndingMenu::setWinNumber(bool &gameWon, int &difficulty)
 {
     /* get the number of wins and update total number if game won */
-    string wins = getWins(gameWon, WIN_FILES[difficulty - 1]);
-
+    string wins = getWins(gameWon, WIN_FILES[difficulty]);
+  
     /* add number of wins to text struct */
     textInfo winNumberText = WIN_NUM_TEXT;
     winNumberText.txt += wins;
@@ -308,13 +260,14 @@ void EndingMenu::setWinNumber(bool &gameWon, int &difficulty)
     }
 
     /* assign win number to member variable */
-    winNumber = makeTextBox((textBoxInfo){WIN_NUM_BOX, winNumberText});
+    winNumber = SFML.makeTextBox(WIN_NUM_BOX, winNumberText);
 }
 
 /* 
  * setDifficulty
  * purpose: Initializes the difficulty initital image of the minesweeper game 
- * arguments: The difficulty of the game
+ * parameters:
+ *      int &difficulty : The difficulty of the game played
  * returns: n/a
  */
 void EndingMenu::setDifficulty(int &difficulty)
@@ -323,17 +276,18 @@ void EndingMenu::setDifficulty(int &difficulty)
     textInfo diffTextInfo = DIFF_TEXT;
 
     /* update initial and color */
-    diffTextInfo.txt  = DIFF_TXT[difficulty - 1];
-    diffTextInfo.fill = DIFF_FILL[difficulty - 1];
+    diffTextInfo.txt  = DIFF_TXT[difficulty];
+    diffTextInfo.fill = DIFF_FILL[difficulty];
 
     /* assign difficulty initial to member variable */
-    difficultyInitial = makeTextBox((textBoxInfo){DIFF_BOX, diffTextInfo});
+    difficultyInitial = SFML.makeTextBox(DIFF_BOX, diffTextInfo);
 }
 
 /* 
  * setWinLoss
  * purpose: Sets the win or loss message in the middle of the screen
- * arguments: The game outcome
+ * parameters:
+ *      bool &gameWon : The outcome of the game
  * returns: name
  */
 void EndingMenu::setWinLoss(bool &gameWon)
@@ -351,24 +305,27 @@ void EndingMenu::setWinLoss(bool &gameWon)
     }
 
     /* assign win/loss message to member variable */
-    winLoss = makeTextBox((textBoxInfo){WIN_LOSS_BOX, winOrLossText});
+    winLoss = SFML.makeTextBox(WIN_LOSS_BOX, winOrLossText);
 }
 
 /* 
  * setCurrTime
  * purpose: Sets the time of the minesweeper game played
- * arguments: The game outcome, the time , and the difficulty
+ * parameters:
+ *        bool &gameWon : The outcome of the game
+ *       Time &gameTime : The time of the elapsed game
+ *      int &difficulty : The difficulty of the game played
  * returns: n/a
  */
 void EndingMenu::setTimes(bool &gameWon, Time &gameTime, int &difficulty)
 {
     /* set the best time image and return if curr time is the new fastest */
-    bool newBest = setBestTime(gameWon, gameTime, TIMES[difficulty - 1]);
+    bool newBest = setBestTime(gameWon, gameTime, TIMES[difficulty]);
 
     /* set text for current time if game was won*/
     textInfo timeText = TIME_TEXT;
     if (gameWon) {
-        timeText.txt += getTime(gameTime);
+        timeText.txt += SFML.getTime(gameTime);
         if (newBest) {
             timeText.fill = GREEN;
         }
@@ -377,25 +334,30 @@ void EndingMenu::setTimes(bool &gameWon, Time &gameTime, int &difficulty)
     }
 
     /* assign time to member variable */
-    time = makeTextBox((textBoxInfo){TIME_BOX, timeText});
+    time = SFML.makeTextBox(TIME_BOX, timeText);
 }
-
-/******************************************************\
- *             Image Helper Functions                  *
-\******************************************************/
-
 
 /* 
  * setBestTime
  * purpose: Sets the current best time of the difficulty played by the user
- * arguments: The game outcome, the current time it took to complete the game 
+ * parameters: The game outcome, the current time it took to complete the game 
  *            and the difficulty
- * returns: n/a
+ *       bool &gameWon : The outcome of the game
+ *      Time &gameTime : The time of the elapsed game
+ *         int &string : The file name storing the fastest time of the current
+ *                        difficulty 
+ * returns: True if the given time is faster and the game was won, false
+ *          otherwise.
+ * Effects: The best time file is updated if the time was faster.
+ * Expectations: The given file is valid. CRE if violated
  */
 bool EndingMenu::setBestTime(bool &gameWon, Time &time, string file)
 {
-    /* read in the best time string and in seconds */
+    /* read in file */
     ifstream fileStream(file);
+    assert(fileStream.is_open());
+
+    /* read in the best time string and in seconds */
     string best, seconds;
     fileStream >> best >> seconds;
     fileStream.close();
@@ -404,36 +366,40 @@ bool EndingMenu::setBestTime(bool &gameWon, Time &time, string file)
     textInfo bestTimeText = BEST_TIME_TEXT;
     bestTimeText.txt += best;
 
-    /* update if curr time is faster than best time */
-    bool faster = false;
-    if ((gameWon) and (time.asSeconds() <= stoi(seconds))) {
-
-        /* curr time is faster */
-        faster = true;
-        
-        /* update best time file */
-        ofstream output(file);
-        output << getTime(time) << " " << time.asSeconds();
-        output.close();
-    }
-
     /* assign best time to member variable */
-    bestTime = makeTextBox((textBoxInfo){BEST_TIME_BOX, bestTimeText});
+    bestTime = SFML.makeTextBox(BEST_TIME_BOX, bestTimeText);
 
-    return faster;
+    /* update if curr time is faster than best time */
+    if ((gameWon) and (time.asSeconds() <= stoi(seconds))) {
+        ofstream output(file);
+        assert(output.is_open());
+        output << SFML.getTime(time) << " " << time.asSeconds();
+        output.close();
+        return true;
+    }
+    return false;
 }
+
+
+/******************************************************\
+ *             Image Helper Function                   *
+\******************************************************/
 
 /* 
  * getWins
  * purpose: Get the number of wins listed in the given file
- * arguments: The outcome of the game and the file containing the number 
- *            of wins
+ * parameters: 
+ *       bool &gameWon : The outcome of the game
+ *         int &string : The file name storing the number of games won on the 
+ *                       current difficulty
  * returns: The number of current wins
+ * expectations: The given file is valid. CRE if violated.
  */
 string EndingMenu::getWins(bool &gameWon, string filename)
 {
     /* open file */
     ifstream file(filename);
+    assert(file.is_open());
 
     /* read in number of wins */
     string wins;
