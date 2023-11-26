@@ -72,19 +72,18 @@ A full minesweeper game implementation including:
 ## User Interface
 
 
-<img width="300" alt="Screenshot 2023-11-26 at 3 21 50 PM" src="https://github.com/tyganChin/minesweeper/assets/130794188/61dd9543-21b2-4144-9826-7192850ab361"> 
-
-<img width="300" alt="Screenshot 2023-11-26 at 3 17 37 PM" src="https://github.com/tyganChin/minesweeper/assets/130794188/55ea053b-5241-402b-8288-1069b2fd1ebd">
-
-<img width="300" alt="Screenshot 2023-11-26 at 3 18 15 PM" src="https://github.com/tyganChin/minesweeper/assets/130794188/c6a3a1bc-095e-4747-a552-deb602bf7a5c">
+<img width="600" alt="Screenshot 2023-11-26 at 3 21 50 PM" src="https://github.com/tyganChin/minesweeper/assets/130794188/61dd9543-21b2-4144-9826-7192850ab361"> 
 
 <img width="300" alt="Screenshot 2023-11-26 at 3 17 26 PM" src="https://github.com/tyganChin/minesweeper/assets/130794188/c573ae47-8995-4d4b-a471-433df10e8e7d">
-
 <img width="300" alt="Screenshot 2023-11-26 at 3 17 32 PM" src="https://github.com/tyganChin/minesweeper/assets/130794188/70ec0701-307d-4fc4-9a97-c4565a28a12f">
-
 <img width="300" alt="Screenshot 2023-11-26 at 3 18 12 PM" src="https://github.com/tyganChin/minesweeper/assets/130794188/6baa1118-d971-41de-8507-3ad8d88c304c">
 
 <img width="300" alt="Screenshot 2023-11-26 at 3 18 20 PM" src="https://github.com/tyganChin/minesweeper/assets/130794188/cf0412b9-9ddf-4db6-823b-d925f23a7e06">
-
 <img width="600" alt="Screenshot 2023-11-26 at 3 18 31 PM" src="https://github.com/tyganChin/minesweeper/assets/130794188/f5a986db-0369-4654-972f-7197866a4a83">
+
+
+
+<img width="300" alt="Screenshot 2023-11-26 at 3 18 15 PM" src="https://github.com/tyganChin/minesweeper/assets/130794188/c6a3a1bc-095e-4747-a552-deb602bf7a5c">
+<img width="300" alt="Screenshot 2023-11-26 at 3 17 37 PM" src="https://github.com/tyganChin/minesweeper/assets/130794188/55ea053b-5241-402b-8288-1069b2fd1ebd">
+
 
