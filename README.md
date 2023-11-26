@@ -1,16 +1,12 @@
-/*****************************************************************************\
- *                                MINESWEEPER                                 *
-\*****************************************************************************/
-Author : Tygan Chin
-Language : C++
-Date : November 26, 2023
 
-![Screenshot](https://github.com/tyganChin/minesweeper/blob/main/Screenshot%202023-11-26%20at%203.17.26%20PM.png?raw=true)
+# Minesweeper
+#### Author : Tygan Chin
+#### Language : C++
+#### Date : November 26, 2023
 
 
-/*****************************************************************************\
- *                               Description                                  *
-\*****************************************************************************/
+
+## Description
 
 A full minesweeper game implementation including : 
     - A starting menu that prompts for the desired difficulty level
@@ -83,3 +79,7 @@ A full minesweeper game implementation including :
 |   |                the user wants to play the game again                    |
 |   |              -> EndingMenu.cpp, EndingMenu.h, EM_Constants.h            |
 +-----------------------------------------------------------------------------+
+
+
+<img width="300" alt="Screenshot 2023-11-26 at 3 21 50 PM" src="https://github.com/tyganChin/minesweeper/assets/130794188/61dd9543-21b2-4144-9826-7192850ab361"> <img width="300" alt="Screenshot 2023-11-26 at 3 17 26 PM" src="https://github.com/tyganChin/minesweeper/assets/130794188/c573ae47-8995-4d4b-a471-433df10e8e7d">
+
