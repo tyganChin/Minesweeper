@@ -25,9 +25,7 @@ A full minesweeper game implementation including :
         - The option to play again or quit
 
 
-/*****************************************************************************\
- *                             How to Play                                    *
-\*****************************************************************************/
+## How to Play
 
 1. Download the files
 2. Ensure you have the Make utility installed in order to run the program
@@ -50,9 +48,7 @@ A full minesweeper game implementation including :
     start a new game or quit to close the program
 
 
-/*****************************************************************************\
- *                           Architecture                                     *
-\*****************************************************************************/
+## Architecture
 
 +-----------------------------------------------------------------------------+
 | - mainMine.cpp - Runs the minesweeper game                                  |
