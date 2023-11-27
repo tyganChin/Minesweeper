@@ -54,8 +54,8 @@ A full minesweeper game implementation including:
 
 - **Game_Constants.h** - Defines the window sizes of the minesweeper game and other constants used throughout the program
 
-- **SFMLhelper**
-  - `SFMLhelper.c`, `SFMLhelper.h` - Defines structs, constants, and functions to help simplify the use of the SFML library
+- **SFMLhelper** - `SFMLhelper.c`, `SFMLhelper.h`
+   - Defines structs, constants, and functions to help simplify the use of the SFML library
 
     - **Minesweeper** - `Minesweeper.cpp`, `Minesweeper.h`, `MS_Constants.h`
       - Prints out the board and responds to user moves
