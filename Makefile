@@ -13,7 +13,7 @@
 CXX = clang++
 
 # Include flags
-IFLAGS = -I/PATH_T0_SFML/inlclude
+IFLAGS = -I/PATH_T0_SFML/include
 
 # Compile flags
 CXXFLAGS = -g3 -Wall -Wextra -Werror -Wfatal-errors -pedantic $(IFLAGS)
