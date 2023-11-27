@@ -55,19 +55,19 @@ A full minesweeper game implementation including:
 - **Game_Constants.h** - Defines the window sizes of the minesweeper game and other constants used throughout the program
 
 - **SFMLhelper** - `SFMLhelper.c`, `SFMLhelper.h`
-   - Defines structs, constants, and functions to help simplify the use of the SFML library
+ - Defines structs, constants, and functions to help simplify the use of the SFML library
 
     - **Minesweeper** - `Minesweeper.cpp`, `Minesweeper.h`, `MS_Constants.h`
-      - Prints out the board and responds to user moves
+     - Prints out the board and responds to user moves
 
         - **Board**  - `Board.cpp`, `Board.h`
-          - Back end representation of the minesweeper game. 2D array of cells that correspond to squares on the board
+         - Back end representation of the minesweeper game. 2D array of cells that correspond to squares on the board
 
         - **StartingMenu** - `StartingMenu.cpp`, `StartingMenu.h`, `SM_Constants.h`
-           - Displays the starting menu and gets the desired difficulty of the user for the game
+         - Displays the starting menu and gets the desired difficulty of the user for the game
 
         - **EndingMenu**  - `EndingMenu.cpp`, `EndingMenu.h`, `EM_Constants.h`
-          - Displays game stats/information and gets whether the user wants to play the game again
+         - Displays game stats/information and gets whether the user wants to play the game again
 
 ## User Interface
 
